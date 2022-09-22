@@ -1,0 +1,19 @@
+#entrada da matriz
+#vec <- read.table()
+
+vec <- read.table("janeiro.txt",h=T,stringsAsFactors = TRUE)
+
+#quebra a tabela a cada 30 linhas
+new <- split(vec$T_81m, ceiling(seq_along(vec$T_81m)/30))
+
+#Calculo da média dos valores das linhas após a quebra
+M30 <- lapply(new,mean)
+
+#pega as médias e cria um vetor
+jan_30m <- unlist(M30)
+
+#visualização simples dos dados
+plot(jan_30m,type = "l",lty = 1,col = "red")
+
+#exporta com tabela o resultado
+write.csv(jan_30m,file="jan_30m.csv",row.names=F)
