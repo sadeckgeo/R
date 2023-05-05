@@ -1,0 +1,17 @@
+library(foreign)
+
+# lista de nomes de arquivo de tabelas
+file_names <- c('C:/Users/LAB2-16/Downloads/DENGON1874627_00.dbf',
+                'C:/Users/LAB2-16/Downloads/DENGON1874621_00.dbf',
+                'C:/Users/LAB2-16/Downloads/DENGON1874628_00.dbf',
+                # adicione mais nomes de arquivo aqui
+                )
+
+# lê todas as tabelas em uma lista
+tables <- lapply(file_names, read.dbf)
+
+# une todas as tabelas usando a função reduce
+result <- Reduce(function(x, y) merge(x, y, all = TRUE), tables)
+
+# resultado final
+result
