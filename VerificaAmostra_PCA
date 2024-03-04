@@ -1,0 +1,59 @@
+# Instale e carregue a biblioteca necessária
+install.packages("ggplot2")
+library(ggplot2)
+
+# Leia os dados
+dados1991 <- read.csv("D:/SADECK_DR/Amostras_classificacao/AmostrasEstat_1992.csv")
+head(dados1991)
+
+# Selecione as colunas desejadas
+colunas_selecionadas <- dados1991[, 1:15]
+head(colunas_selecionadas)
+
+# Aplique a PCA
+resultado_pca <- prcomp(colunas_selecionadas, center = TRUE, scale. = TRUE)
+summary(resultado_pca)
+
+vetores_carga_pc1 <- resultado_pca$rotation[, 1]
+
+# Crie um dataframe para facilitar a visualização
+df_vetores_carga <- data.frame(Variable = names(vetores_carga_pc1), Loadings = vetores_carga_pc1)
+
+# Ordene o dataframe pelo valor absoluto dos vetores de carga em ordem decrescente
+df_vetores_carga <- df_vetores_carga[order(abs(df_vetores_carga$Loadings), decreasing = TRUE), ]
+
+print(df_vetores_carga)
+
+# Acesse os componentes principais
+componentes_principais <- resultado_pca$rotation
+proporcao_variancia <- resultado_pca$sdev^2 / sum(resultado_pca$sdev^2)
+
+# Plote a variação explicada por cada componente principal
+plot(proporcao_variancia, type = 'b', ylab = 'Proporção de Variância Explicada', xlab = 'Componente Principal')
+
+# Acesse os dados transformados pelos componentes principais
+dados_transformados <- as.data.frame(predict(resultado_pca, newdata = colunas_selecionadas))
+
+# Adicione a coluna "class" ao conjunto de dados transformados
+dados_transformados$class <- colunas_selecionadas$class
+
+# Plote os dados no novo espaço de características (usando os dois primeiros componentes principais)
+ggplot(dados_transformados, aes(x = PC1, y = PC2, color = factor(class))) +
+  geom_point() +
+  labs(title = "Dados Transformados pelos Componentes Principais") +
+  scale_color_manual(values = c("1" = "red", "2" = "green", "3" = "blue"))
+
+# Plote os vetores de carga em relação ao PC1
+ggplot(df_vetores_carga, aes(x = Variable, y = Loadings)) +
+  geom_bar(stat = "identity", fill = "skyblue", color = "black") +
+  labs(title = "Vetores de Carga em Relação ao PC1") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+#verificação de valores vazios
+# if (any(is.na(dados1991))) {
+#   + print("Atenção: Seus dados contêm valores faltantes.")
+#   + linhas_faltantes <- which(apply(is.na(dados1991), 1, any))
+#   + colunas_faltantes <- which(apply(is.na(dados1991), 2, any))
+#   + print(paste("Linhas com valores faltantes:", toString(linhas_faltantes)))
+#   + print(paste("Colunas com valores faltantes:", toString(colunas_faltantes)))
+#   + }
