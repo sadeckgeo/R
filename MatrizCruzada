@@ -1,0 +1,44 @@
+library(tidyverse)
+library(terra)
+#library(tabulizer)
+library(tmap)
+library(networkD3)
+library(webshot2)
+
+#importando dados
+mapbiomas_2003 <- terra::rast("D:/BASE_GEO/Carla/drive-download-20240305T134643Z-001/mapbiomas-brazil-collection-80-santanadoaraguaia-2003.tif")
+mapbiomas_2010 <- terra::rast("D:/BASE_GEO/Carla/drive-download-20240305T134643Z-001/mapbiomas-brazil-collection-80-santanadoaraguaia-2010.tif")
+mapbiomas_2017 <- terra::rast("D:/BASE_GEO/Carla/drive-download-20240305T134643Z-001/mapbiomas-brazil-collection-80-santanadoaraguaia-2017.tif")
+mapbiomas_2022 <- terra::rast("D:/BASE_GEO/Carla/drive-download-20240305T134643Z-001/mapbiomas-brazil-collection-80-santanadoaraguaia-2022_2.tif")
+
+plot(mapbiomas_2022)
+
+#removendo valores 0
+mapbiomas_2003[mapbiomas_2003 == 0] <- NA
+mapbiomas_2010[mapbiomas_2010 == 0] <- NA
+mapbiomas_2017[mapbiomas_2017 == 0] <- NA
+mapbiomas_2022[mapbiomas_2022 == 0] <- NA
+
+# pixel table
+table_freq <- addmargins(terra::crosstab(c(mapbiomas_2017, mapbiomas_2022)))
+
+# row and column names
+table_rownames_freq_class <- as.numeric(rownames(table_freq)[-length(rownames(table_freq))])
+table_colnames_freq_class <- as.numeric(colnames(table_freq)[-length(colnames(table_freq))])
+
+as.matrix(table_freq)
+
+area_pixel <- (res(mapbiomas_2017)[1] * 3600 * 30^2)/10000
+
+table_freq_area <- round(table_freq * area_pixel, 1)
+
+freq <- terra::crosstab(c(mapbiomas_2017, mapbiomas_2022))
+print(freq)
+
+
+install.packages("openxlsx")
+library(openxlsx)
+
+write.table(freq, "D:/BASE_GEO/Carla/freq_1722.csv", quote = FALSE, row.names = TRUE, sep = ";", fileEncoding = "UTF-16LE")
+
+print(mapbiomas_2022)
