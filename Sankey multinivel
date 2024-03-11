@@ -1,0 +1,31 @@
+install.packages("OpenLand") #https://github.com/reginalexavier/OpenLand
+
+library(OpenLand)
+library(terra)
+
+mapbiomas <- rast(c('D:/BASE_GEO/Carla/drive-download-20240305T134643Z-001/mapbiomas-brazil-collection-80-santanadoaraguaia-2003.tif',
+                    'D:/BASE_GEO/Carla/drive-download-20240305T134643Z-001/mapbiomas-brazil-collection-80-santanadoaraguaia-2010.tif',
+                    'D:/BASE_GEO/Carla/drive-download-20240305T134643Z-001/mapbiomas-brazil-collection-80-santanadoaraguaia-2017.tif',
+                    'D:/BASE_GEO/Carla/drive-download-20240305T134643Z-001/mapbiomas-brazil-collection-80-santanadoaraguaia-2022_2.tif'))
+plot(mapbiomas)
+
+#removendo valores 0
+mapbiomas[mapbiomas==0]<-NA
+
+plot(mapbiomas)
+
+mb<- contingencyTable(input_raster = raster::stack(mapbiomas), pixelresolution = 30)
+
+mb
+
+#selecionado do tookit mapbiomas e ajustado no Copilot microsoft
+mb$tb_legend$categoryName <- as.factor(c("Forest","Savanna","ÁreasAlagadas","ForestPlantation","Wetland","Grassland","Pasture","Agropecuária","Urban","NonVegetatedArea","FormaçãoRochosa","Mining","River","SoyBeans","MosaicCrops"))
+
+#selecionado do tookit mapbiomas e ajustado no Copilot microsoft
+mb$tb_legend$color<- as.factor(c("#32a65e", "#1f8d49", "#026975", "#000000", "#7a6c00", "#519799", "#d89f5c", "#edde8e", "#f5b3c8", "#db7093", "#db4d4f", "#0000ff", "#ffaa5f", "#091077", "#2532e4"))
+
+#Criando o Sankey
+sankey_0322 <- sankeyLand(dataset = mb$lulc_Multistep, legendtable = mb$tb_legend)
+
+#visualizando o Sankey
+sankey_0322
