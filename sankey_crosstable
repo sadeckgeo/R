@@ -25,17 +25,41 @@ nodes <- data.frame(name = unique(c(links$source, links$target)))
 links$IDsource <- match(links$source, nodes$name) - 1
 links$IDtarget <- match(links$target, nodes$name) - 1
 
-# Adicionar cores aos nós
-nodes$group <- nodes$name
+# Criar um data frame separado para os nós com informações adicionais
+nodes <- data.frame(name = nodes$name, 
+                    group = ifelse(nodes$name %in% links$source, "source", "target"))
 
+# Definir uma paleta de cores personalizada
+# Definir um mapeamento de cores específico para cada classe única para source e target
+color_mapping_source <- data.frame(
+  name = unique(links$source),
+  color = c("#1f8d49", "#026975", "#519799", "#d6bc74", "#edde8e", "#d4271e",
+            "#ffaa5f", "#9c0027", "#2532e4") 
+)
+
+color_mapping_target <- data.frame(
+  name = unique(links$target),
+  color = c("#1f8d49", "#519799","#d6bc74","#edde8e","#d4271e","#ffaa5f",
+            "#9c0027","#2532e4","#026975") 
+)
+
+# Mapear as cores para os nós
+nodes <- nodes %>%
+  left_join(color_mapping_source, by = "name") %>%
+  rename(color_source = color) %>%
+  left_join(color_mapping_target, by = "name") %>%
+  rename(color_target = color) 
 
 # Criar o gráfico de Sankey com cores personalizadas
 sankey <- sankeyNetwork(Links = links, Nodes = nodes,
                         Source = "IDsource", Target = "IDtarget",
                         Value = "value", NodeID = "name",
-                        sinksRight = FALSE, 
-                        colourScale = JS("d3.scaleOrdinal(d3.schemeCategory20);"))
+                        sinksRight = FALSE,
+                        colourScale = JS(paste0("d3.scaleOrdinal().domain([",
+                                                paste(shQuote(nodes$name), collapse = ", "),
+                                                "]).range([",
+                                                paste(shQuote(ifelse(nodes$group == "source", nodes$color_source, nodes$color_target)), collapse = ", "),
+                                                "]);")))
 
-
-# Visualizar o gráfico de Sankey 
+# Visualizar o gráfico de Sankey com cores personalizadas
 sankey
