@@ -1,0 +1,41 @@
+library(networkD3)
+library(dplyr)
+library(tidyr)
+
+transition_matrix <- read.csv("C:/Users/luis.sadeck.COEAM/Downloads/transicao.csv", stringsAsFactors = FALSE, dec = ",")
+
+head(transition_matrix)
+
+# Renomear a coluna 'X' para 'source'
+colnames(transition_matrix)[1] <- "source"
+
+# Transformar a tabela cruzada em um data frame de links
+links <- transition_matrix %>%
+  pivot_longer(cols = -source, names_to = "target", values_to = "value") %>%
+  filter(value > 0) %>% # Remover transições com valor 0
+  mutate(source = gsub("\\.2022$", "", source), # Remover o ano das fontes
+         target = gsub("\\s+2000$", "", target),  # Remover o ano dos alvos
+         value = as.numeric(gsub(",", ".", value))) %>% # Converter valores para numérico
+  as.data.frame() # Converter para data frame comum
+
+# Criar uma lista única de nós (classes)
+nodes <- data.frame(name = unique(c(links$source, links$target)))
+
+# Mapear os nomes dos nós para índices
+links$IDsource <- match(links$source, nodes$name) - 1
+links$IDtarget <- match(links$target, nodes$name) - 1
+
+# Adicionar cores aos nós
+nodes$group <- nodes$name
+
+
+# Criar o gráfico de Sankey com cores personalizadas
+sankey <- sankeyNetwork(Links = links, Nodes = nodes,
+                        Source = "IDsource", Target = "IDtarget",
+                        Value = "value", NodeID = "name",
+                        sinksRight = FALSE, 
+                        colourScale = JS("d3.scaleOrdinal(d3.schemeCategory20);"))
+
+
+# Visualizar o gráfico de Sankey 
+sankey
